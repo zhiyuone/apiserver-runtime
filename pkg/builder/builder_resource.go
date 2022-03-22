@@ -129,6 +129,19 @@ func (a *Server) WithResourceAndStorage(obj resource.Object, fn rest.StoreFn) *S
 	return a.forGroupVersionResource(gvr, rest.NewWithFn(obj, fn))
 }
 
+// WithSubResourceAndHandler registers a request handler for the subresource rather than the default
+// etcd backed storage.
+//
+// Note: WithSubResource does NOT register the request or parent with the SchemeBuilder.  If they were not registered
+// through a WithResource call, then this must be done manually with WithAdditionalSchemeInstallers.
+func (a *Server) WithSubResourceAndHandler(
+	parent resource.Object, subResource resource.SubResource, sp rest.ResourceHandlerProvider) *Server {
+	gvr := parent.GetGroupVersionResource()
+	// add the subresource path
+	gvr.Resource = gvr.Resource + "/" + subResource.SubResourceName()
+	return a.forGroupVersionResource(gvr, sp)
+}
+
 // forGroupVersionResource manually registers storage for a specific resource.
 func (a *Server) forGroupVersionResource(
 	gvr schema.GroupVersionResource, sp rest.ResourceHandlerProvider) *Server {
